@@ -1,4 +1,3 @@
-@Library("Shared") _
 pipeline{
     
     agent { label "dev"};
@@ -7,29 +6,28 @@ pipeline{
         stage("Code Clone"){
             steps{
                script{
-                   clone("https://github.com/LondheShubham153/two-tier-flask-app.git", "master")
+                   clone("https://github.com/CBUM-Bhardwaj/two-tier-flask-app.git", "master")
                }
             }
         }
-        stage("Trivy File System Scan"){
-            steps{
-                script{
-                    trivy_fs()
-                }
-            }
-        }
-        stage("Build"){
+        // stage("Trivy File System Scan"){
+        //     steps{
+        //         script{
+        //             trivy_fs()
+        //         }
+        //     }
+        // }
+        stage("Build Docker File"){
             steps{
                 sh "docker build -t two-tier-flask-app ."
             }
-            
         }
-        stage("Test"){
-            steps{
-                echo "Developer / Tester tests likh ke dega..."
-            }
+        // stage("Test"){
+        //     steps{
+        //         echo "Developer / Tester tests likh ke dega..."
+        //     }
             
-        }
+        // }
         stage("Push to Docker Hub"){
             steps{
                 script{
@@ -43,23 +41,11 @@ pipeline{
             }
         }
     }
-
-post{
-        success{
-            script{
-                emailext from: 'mentor@trainwithshubham.com',
-                to: 'mentor@trainwithshubham.com',
-                body: 'Build success for Demo CICD App',
-                subject: 'Build success for Demo CICD App'
-            }
-        }
-        failure{
-            script{
-                emailext from: 'mentor@trainwithshubham.com',
-                to: 'mentor@trainwithshubham.com',
-                body: 'Build Failed for Demo CICD App',
-                subject: 'Build Failed for Demo CICD App'
-            }
+    post {
+        always {
+            echo "Cleaning up unused Docker resources..."
+            sh "docker system prune -a -f"
         }
     }
 }
+
